@@ -1,0 +1,28 @@
+{
+  "name": "image-compressor-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Hasna-Nachiyar-S/image-compressor-api.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Hasna-Nachiyar-S/image-compressor-api/issues"
+  },
+  "homepage": "https://github.com/Hasna-Nachiyar-S/image-compressor-api#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "multer": "^2.2.0",
+    "pdf-lib": "^1.17.1",
+    "sharp": "^0.35.2"
+  }
+}
