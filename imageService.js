@@ -2,14 +2,14 @@ const sharp = require("sharp");
 const fs = require("fs");
 const path = require("path");
 
-console.log("IMAGE SERVICE BUILD 2026-06-22");
-
 function normalizeLevel(level = 50) {
   return Math.max(1, Math.min(100, Number(level) || 50));
 }
 
 function getJpegQuality(level) {
-  return Math.round(95 - ((level - 1) * 35) / 99);
+  // Slider 1 -> 98 quality
+  // Slider 100 -> 20 quality
+  return Math.round(98 - ((level - 1) * 78) / 99);
 }
 
 async function compressImage(inputPath, compressionLevel = 50) {
@@ -32,89 +32,82 @@ async function compressImage(inputPath, compressionLevel = 50) {
       outputExtension = ".webp";
       break;
 
-    case ".jpg":
-    case ".jpeg":
     default:
       outputExtension = ".jpg";
-      break;
   }
 
   const outputPath = path.join("compressed", `${Date.now()}${outputExtension}`);
 
-  let targetWidth = metadata.width;
-
-  // Resize only very large images
-  if (metadata.width > 2500) {
-    targetWidth = 2500;
-  }
-
-  console.log("=================================");
-  console.log("Compression Level:", level);
-  console.log("Format:", metadata.format);
-  console.log("Original Width:", metadata.width);
-  console.log("Original Height:", metadata.height);
-  console.log("Target Width:", targetWidth);
-  console.log("Original Size:", originalSize);
-  console.log("=================================");
-
   let pipeline = sharp(inputPath);
 
-  if (targetWidth !== metadata.width) {
+  if (metadata.width > 2500) {
     pipeline = pipeline.resize({
-      width: targetWidth,
+      width: 2500,
       withoutEnlargement: true,
     });
   }
 
-  /*
-   * PNG
-   * Lossless optimization only
-   */
+  console.log("Compression Level:", level);
+
+  //------------------------------------------
+  // PNG
+  //------------------------------------------
+
   if (outputExtension === ".png") {
+    const quality = Math.max(20, 100 - level);
+
+    console.log("PNG Quality:", quality);
+
     await pipeline
       .png({
-        compressionLevel: 9,
-        adaptiveFiltering: true,
         palette: true,
+        quality,
+        effort: 10,
       })
       .toFile(outputPath);
-  } else if (outputExtension === ".webp") {
-    /*
-     * WEBP
-     */
+  }
+
+  //------------------------------------------
+  // WEBP
+  //------------------------------------------
+  else if (outputExtension === ".webp") {
+    const quality = Math.max(15, 100 - level);
+
+    console.log("WEBP Quality:", quality);
+
     await pipeline
       .webp({
-        quality: Math.max(40, 100 - Math.round(level * 0.6)),
+        quality,
       })
       .toFile(outputPath);
-  } else {
-    /*
-     * JPG / JPEG
-     */
+  }
+
+  //------------------------------------------
+  // JPEG
+  //------------------------------------------
+  else {
+    const quality = getJpegQuality(level);
+
+    console.log("JPEG Quality:", quality);
+
     await pipeline
       .jpeg({
-        quality: getJpegQuality(level),
+        quality,
         mozjpeg: true,
+        progressive: true,
       })
       .toFile(outputPath);
   }
 
   const compressedSize = fs.statSync(outputPath).size;
 
-  /*
-   * Never return larger files
-   */
   if (compressedSize >= originalSize) {
-    console.log("Compressed file larger than original. Keeping original.");
-
     fs.unlinkSync(outputPath);
 
     return {
       outputPath: inputPath,
       originalSize,
       compressedSize: originalSize,
-      quality: outputExtension === ".jpg" ? getJpegQuality(level) : null,
-      width: metadata.width,
       reductionPercent: "0.00",
     };
   }
@@ -124,15 +117,10 @@ async function compressImage(inputPath, compressionLevel = 50) {
     100
   ).toFixed(2);
 
-  console.log("Compressed Size:", compressedSize);
-  console.log("Reduction:", reductionPercent + "%");
-
   return {
     outputPath,
     originalSize,
     compressedSize,
-    quality: outputExtension === ".jpg" ? getJpegQuality(level) : null,
-    width: targetWidth,
     reductionPercent,
   };
 }
