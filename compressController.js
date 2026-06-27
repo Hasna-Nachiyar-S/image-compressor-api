@@ -12,6 +12,8 @@ function normalizeCompressionLevel(value) {
 
   return Math.max(1, Math.min(100, num));
 }
+console.log("BODY:", req.body);
+console.log("Compression Level Received:", req.body.compressionLevel);
 
 exports.compressFromUrl = async (req, res) => {
   try {
