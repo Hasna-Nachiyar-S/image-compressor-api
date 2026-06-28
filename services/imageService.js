@@ -1,5 +1,3 @@
-console.log("compressImage() level =", compressionLevel);
-
 const sharp = require("sharp");
 const fs = require("fs");
 const path = require("path");
@@ -15,6 +13,8 @@ function getJpegQuality(level) {
 }
 
 async function compressImage(inputPath, compressionLevel = 50) {
+  console.log("compressImage() level =", compressionLevel);
+
   const level = normalizeLevel(compressionLevel);
 
   const metadata = await sharp(inputPath).metadata();
