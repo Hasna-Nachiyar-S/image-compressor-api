@@ -2,7 +2,6 @@ const fs = require("fs");
 const path = require("path");
 
 const compressImage = require("../services/imageService");
-const compressDocument = require("../services/documentService");
 const downloadFile = require("../services/downloadFileService");
 
 function normalizeCompressionLevel(value) {
