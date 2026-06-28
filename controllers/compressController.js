@@ -11,14 +11,14 @@ function normalizeCompressionLevel(value) {
 
   return Math.max(1, Math.min(100, num));
 }
-console.log("BODY:", req.body);
-console.log("Compression Level Received:", req.body.compressionLevel);
 
 exports.compressFromUrl = async (req, res) => {
   try {
-    console.log("BODY:", req.body);
+    console.log("Request Body:", req.body);
 
     const { fileUrl, fileName, compressionLevel } = req.body;
+
+    console.log("Received compressionLevel:", compressionLevel);
 
     if (!fileUrl || !fileName) {
       return res.status(400).json({
@@ -28,6 +28,8 @@ exports.compressFromUrl = async (req, res) => {
     }
 
     const normalizedLevel = normalizeCompressionLevel(compressionLevel);
+
+    console.log("Normalized Level:", normalizedLevel);
 
     const extension = fileName.split(".").pop().toLowerCase();
 
@@ -49,7 +51,6 @@ exports.compressFromUrl = async (req, res) => {
 
     if (imageExtensions.includes(extension)) {
       result = await compressImage(localFile, normalizedLevel);
-      console.log("RESULT OUTPUT:", result.outputPath);
     } else {
       result = await compressDocument(localFile, normalizedLevel);
     }
@@ -58,18 +59,18 @@ exports.compressFromUrl = async (req, res) => {
       fs.unlinkSync(localFile);
     }
 
-    const fileNameForDownload = path.basename(result.outputPath);
+    const downloadFileName = path.basename(result.outputPath);
 
-    const downloadUrl = `https://file-compressor-api-kgy8.onrender.com/download/${fileNameForDownload}`;
+    const downloadUrl = `https://file-compressor-api-kgy8.onrender.com/download/${downloadFileName}`;
 
     return res.json({
       success: true,
       originalSize: result.originalSize,
       compressedSize: result.compressedSize,
+      reductionPercent: result.reductionPercent,
+      compressionLevel: normalizedLevel,
       quality: result.quality,
       width: result.width,
-      compressionLevel: normalizedLevel,
-      reductionPercent: result.reductionPercent,
       downloadUrl,
     });
   } catch (err) {

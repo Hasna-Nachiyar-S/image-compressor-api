@@ -7,15 +7,17 @@ function normalizeLevel(level = 50) {
 }
 
 function getJpegQuality(level) {
-  // Slider 1 -> 98 quality
-  // Slider 100 -> 20 quality
   return Math.round(98 - ((level - 1) * 78) / 99);
 }
 
 async function compressImage(inputPath, compressionLevel = 50) {
-  console.log("compressImage() level =", compressionLevel);
+  console.log("==============================");
+  console.log("compressImage()");
+  console.log("Input Level:", compressionLevel);
 
   const level = normalizeLevel(compressionLevel);
+
+  console.log("Normalized Level:", level);
 
   const metadata = await sharp(inputPath).metadata();
 
@@ -49,12 +51,6 @@ async function compressImage(inputPath, compressionLevel = 50) {
     });
   }
 
-  console.log("Compression Level:", level);
-
-  //------------------------------------------
-  // PNG
-  //------------------------------------------
-
   if (outputExtension === ".png") {
     const quality = Math.max(20, 100 - level);
 
@@ -67,12 +63,7 @@ async function compressImage(inputPath, compressionLevel = 50) {
         effort: 10,
       })
       .toFile(outputPath);
-  }
-
-  //------------------------------------------
-  // WEBP
-  //------------------------------------------
-  else if (outputExtension === ".webp") {
+  } else if (outputExtension === ".webp") {
     const quality = Math.max(15, 100 - level);
 
     console.log("WEBP Quality:", quality);
@@ -82,12 +73,7 @@ async function compressImage(inputPath, compressionLevel = 50) {
         quality,
       })
       .toFile(outputPath);
-  }
-
-  //------------------------------------------
-  // JPEG
-  //------------------------------------------
-  else {
+  } else {
     const quality = getJpegQuality(level);
 
     console.log("JPEG Quality:", quality);
@@ -103,6 +89,9 @@ async function compressImage(inputPath, compressionLevel = 50) {
 
   const compressedSize = fs.statSync(outputPath).size;
 
+  console.log("Original Size:", originalSize);
+  console.log("Compressed Size:", compressedSize);
+
   if (compressedSize >= originalSize) {
     fs.unlinkSync(outputPath);
 
@@ -111,6 +100,8 @@ async function compressImage(inputPath, compressionLevel = 50) {
       originalSize,
       compressedSize: originalSize,
       reductionPercent: "0.00",
+      quality: level,
+      width: metadata.width,
     };
   }
 
@@ -124,6 +115,8 @@ async function compressImage(inputPath, compressionLevel = 50) {
     originalSize,
     compressedSize,
     reductionPercent,
+    quality: level,
+    width: metadata.width,
   };
 }
 
